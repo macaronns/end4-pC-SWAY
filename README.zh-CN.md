@@ -4,16 +4,15 @@
 
 <div align="center">
 
-# 💠 end4-pC
+# 💠 end4-pC Sway Adaptation
 
-**[illogical-impulse](https://github.com/end-4/dots-hyprland)（作者：[@end-4](https://github.com/end-4)）的个人分支**
-由 **pctrade** 定制并维护
+**A personal fork of [end4-pC](https://github.com/pctrade/end4-pC)**
 
 [English](README.md) | [简体中文](README.zh-CN.md) | [日本語](README.ja.md)
 
 </div>
 
----
+# --- Original README (use your brain or IA for use this fork) ---
 
 ## 🎬 展示
 
