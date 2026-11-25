@@ -64,10 +64,11 @@ MouseArea { // Notification group area
             easing.bezierCurve: Appearance.animation.elementMove.bezierCurve
         }
         onFinished: () => {
-            // One call for the whole group, so the list is rewritten and the file
-            // saved once instead of once per notification.
-            const ids = root.notifications.map((notif) => notif.notificationId);
-            Qt.callLater(() => Notifications.discardNotifications(ids));
+            root.notifications.forEach((notif) => {
+                Qt.callLater(() => {
+                    Notifications.discardNotification(notif.notificationId);
+                });
+            });
         }
     }
 
@@ -118,13 +119,6 @@ MouseArea { // Notification group area
     }
     Rectangle { // Background of the notification
         id: background
-
-        WindowGlass {
-            anchors.fill: parent
-            glassEnabled: root.popup && (parent?.color.a ?? 0) > 0
-            cardRadius: parent?.radius ?? 0
-            tint: parent?.color ?? 'transparent'
-        }
         anchors.left: parent.left
         width: parent.width
         color: popup ? Appearance.colors.colBackgroundSurfaceContainer : Appearance.colors.colLayer2

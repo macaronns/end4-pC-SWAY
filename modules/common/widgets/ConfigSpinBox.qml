@@ -11,7 +11,6 @@ RowLayout {
     property alias stepSize: spinBoxWidget.stepSize
     property alias from: spinBoxWidget.from
     property alias to: spinBoxWidget.to
-    signal valueModified()
     spacing: 10
     Layout.leftMargin: 8
     Layout.rightMargin: 8
@@ -35,6 +34,5 @@ RowLayout {
         id: spinBoxWidget
         Layout.fillWidth: false
         value: root.value
-        onValueModified: root.valueModified()
     }
 }

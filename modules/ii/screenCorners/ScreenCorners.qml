@@ -24,11 +24,7 @@ Scope {
         id: cornerPanelWindow
         property var brightnessMonitor: Brightness.getMonitorForScreen(screen)
         property bool fullscreen
-        readonly property bool showFakeRounding: Config.options.bar.cornerStyle !== 5
-            && (Config.options.appearance.fakeScreenRounding === 1 || (Config.options.appearance.fakeScreenRounding === 2 && !fullscreen))
-        readonly property real frameInset: Config.options.bar.frameThickness
-        readonly property bool showFrameCorner: Config.options.bar.showFrame && !fullscreen
-        visible: showFakeRounding || Config.options.sidebar.cornerOpen.enable || showFrameCorner
+        visible: (Config.options.appearance.fakeScreenRounding === 1 || (Config.options.appearance.fakeScreenRounding === 2 && !fullscreen))
         property var corner
 
         exclusionMode: ExclusionMode.Ignore
@@ -50,14 +46,13 @@ Scope {
             bottom: (Config.options.interactions.deadPixelWorkaround.enable && cornerPanelWindow.anchors.bottom) * -1
         }
 
-        implicitWidth: Math.max(cornerWidget.implicitWidth, showFrameCorner ? Math.max(frameInset, Appearance.rounding.screenRounding) : 0)
-        implicitHeight: Math.max(cornerWidget.implicitHeight, showFrameCorner ? Math.max(frameInset, Appearance.rounding.screenRounding) : 0)
+        implicitWidth: cornerWidget.implicitWidth
+        implicitHeight: cornerWidget.implicitHeight
 
         RoundCorner {
             id: cornerWidget
             anchors.fill: parent
             corner: cornerPanelWindow.corner
-            color: cornerPanelWindow.showFakeRounding ? "#000000" : "transparent"
             rightVisualMargin: (Config.options.interactions.deadPixelWorkaround.enable && cornerPanelWindow.anchors.right) * 1
             bottomVisualMargin: (Config.options.interactions.deadPixelWorkaround.enable && cornerPanelWindow.anchors.bottom) * 1
 
@@ -106,16 +101,22 @@ Scope {
                             return;
                         if (cornerWidget.isLeft)
                             Brightness.decreaseBrightness()
-                        else
-                            Audio.decrementVolume();
+                        else {
+                            const currentVolume = Audio.value;
+                            const step = currentVolume < 0.1 ? 0.01 : 0.02 || 0.2;
+                            Audio.sink.audio.volume -= step;
+                        }
                     }
                     onScrollUp: {
                         if (!Config.options.sidebar.cornerOpen.valueScroll)
                             return;
                         if (cornerWidget.isLeft)
                             Brightness.increaseBrightness()
-                        else
-                            Audio.incrementVolume();
+                        else {
+                            const currentVolume = Audio.value;
+                            const step = currentVolume < 0.1 ? 0.01 : 0.02 || 0.2;
+                            Audio.sink.audio.volume = Math.min(1, Audio.sink.audio.volume + step);
+                        }
                     }
                     onMovedAway: {
                         if (!Config.options.sidebar.cornerOpen.valueScroll)
@@ -134,23 +135,6 @@ Scope {
                         }
                     }
                 }
-            }
-        }
-
-        RoundCorner {
-            visible: cornerPanelWindow.showFrameCorner
-            corner: cornerPanelWindow.corner
-            implicitSize: Math.max(0, Appearance.rounding.screenRounding - cornerPanelWindow.frameInset)
-            color: Appearance.getColorFromName(Config.options.bar.frameColor)
-            anchors {
-                top: cornerWidget.isTop ? parent.top : undefined
-                bottom: cornerWidget.isBottom ? parent.bottom : undefined
-                left: cornerWidget.isLeft ? parent.left : undefined
-                right: cornerWidget.isRight ? parent.right : undefined
-                topMargin: cornerWidget.isTop ? cornerPanelWindow.frameInset : 0
-                bottomMargin: cornerWidget.isBottom ? cornerPanelWindow.frameInset : 0
-                leftMargin: cornerWidget.isLeft ? cornerPanelWindow.frameInset : 0
-                rightMargin: cornerWidget.isRight ? cornerPanelWindow.frameInset : 0
             }
         }
     }

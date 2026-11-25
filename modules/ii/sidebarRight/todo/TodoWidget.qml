@@ -168,7 +168,6 @@ Item {
 
                 TextField {
                     id: todoInput
-                    ContextMenu.menu: StyledTextEditMenu { editor: todoInput }
                     Layout.fillWidth: true
                     Layout.leftMargin: 16
                     Layout.rightMargin: 16

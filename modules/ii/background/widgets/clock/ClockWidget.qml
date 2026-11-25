@@ -26,7 +26,7 @@ AbstractBackgroundWidget {
         return Appearance.colors[propName] ?? root.colText;
     }
     property bool wallpaperSafetyTriggered: false
-    needsColText: clockStyle === "digital" || clockStyle === "daily"
+    needsColText: clockStyle === "digital"
     x: forceCenter ? ((root.screenWidth - root.width) / 2) : targetX
     y: forceCenter ? ((root.screenHeight - root.height) / 2) : targetY
     visibleWhenLocked: true
@@ -58,9 +58,6 @@ AbstractBackgroundWidget {
             fade: false
             sourceComponent: CookieClock {
                 anchors.horizontalCenter: parent.horizontalCenter
-                wallpaperItem: root.wallpaperItem
-                originX: root.x
-                originY: root.y
             }
         }
 
@@ -76,25 +73,11 @@ AbstractBackgroundWidget {
         }
 
         FadeLoader {
-            id: dailyClockLoader
-            anchors.horizontalCenter: parent.horizontalCenter
-            shown: root.clockStyle === "daily" && (root.shouldShow)
-            fade: false
-            sourceComponent: DailyClock {
-                colText: root.resolvedClockColor
-            }
-        }
-
-        FadeLoader {
             id: pixelClockLoader
             anchors.horizontalCenter: parent.horizontalCenter
             shown: root.clockStyle === "pixel" && (root.shouldShow)
             fade: false
-            sourceComponent: PixelClock {
-                wallpaperItem: root.wallpaperItem
-                originX: root.x
-                originY: root.y
-            }
+            sourceComponent: PixelClock {}
         }
 
         FadeLoader {

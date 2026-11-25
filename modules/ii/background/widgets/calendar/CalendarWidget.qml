@@ -137,13 +137,19 @@ AbstractBackgroundWidget {
         }
     }
 
-    WidgetCard {
+    Rectangle {
         id: card
         implicitWidth: root.widgetWidth
         implicitHeight: root.sizeMode === "1x1" ? root.cardHeight
                       : root.sizeMode === "1x2" ? root.cardHeight
                       : root.cardHeight * 2 + root.cardSpacing
-        widget: root
+        radius: Appearance.rounding?.verylarge ?? 30
+        color: Appearance.colors.colPrimaryContainer
+
+        StyledRectangularShadow {
+            target: card
+            z: -2
+        }
 
         Loader {
             anchors.fill: parent
@@ -160,7 +166,7 @@ AbstractBackgroundWidget {
             id: oneByOneContent
             Rectangle {
                 anchors.fill: parent
-                radius: Appearance.rounding?.verylarge ?? 30
+                radius: parent.radius
                 color: "transparent"
 
                 ColumnLayout {

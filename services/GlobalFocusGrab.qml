@@ -24,6 +24,9 @@ Singleton {
         root.dismissed();
     }
 
+    Component.onCompleted: {
+        console.log("[GlobalFocusGrab] Initialized" + (WM.compositor !== "hyprland" ? " (inactive, non-Hyprland compositor)" : ""));
+    }
 
     function addPersistent(window) {
         if (root.persistent.indexOf(window) === -1) {

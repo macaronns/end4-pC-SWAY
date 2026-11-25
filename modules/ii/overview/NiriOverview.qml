@@ -252,9 +252,6 @@ Item {
         interactive: !root.isDragging
         boundsBehavior: Flickable.StopAtBounds
         clip: true
-
-        TouchpadScrollArea { flickable: flickable }
-
         ScrollBar.vertical: ScrollBar { policy: ScrollBar.AlwaysOff }
 
         Column {

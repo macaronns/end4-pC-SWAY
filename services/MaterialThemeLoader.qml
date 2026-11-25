@@ -3,7 +3,6 @@ pragma ComponentBehavior: Bound
 
 import qs
 import qs.modules.common
-import qs.services
 import QtQuick
 import Quickshell
 import Quickshell.Io
@@ -27,13 +26,21 @@ Singleton {
                 // Convert snake_case to CamelCase
                 const camelCaseKey = key.replace(/_([a-z])/g, (g) => g[1].toUpperCase())
                 const m3Key = `m3${camelCaseKey}`
-                Appearance.m3colors[m3Key] = json[key]
+                
+                try {
+                    // On vérifie que la propriété existe avant de l'assigner
+                    if (m3Key in Appearance.m3colors) {
+                        Appearance.m3colors[m3Key] = json[key]
+                    }
+                } catch(e) {
+                    // On ignore silencieusement les clés non reconnues
+                }
             }
         }
-        Appearance.m3colors.darkmode = (Appearance.m3colors.m3background.hslLightness < 0.5)
-        // Custom window border colors are stored as palette roles, so they
-        // have to be pushed to Hyprland again whenever the palette changes.
-        HyprlandConfig.applyBorderColors()
+        
+        try {
+            Appearance.m3colors.darkmode = (Appearance.m3colors.m3background.hslLightness < 0.5)
+        } catch(e) {}
     }
 
     function resetFilePathNextTime() {

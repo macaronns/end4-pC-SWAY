@@ -13,7 +13,6 @@ Rectangle {
     required property string sublabel
     property color sublabelColor: Appearance.colors.colOnSurfaceVariant
     property int cardWidth: 150 
-    property string valueText: ""
 
     width: cardWidth
     height: 96 
@@ -50,7 +49,7 @@ Rectangle {
             Item { Layout.fillWidth: true }
 
             StyledText {
-                text: root.valueText !== "" ? root.valueText : `${Math.round(root.value * 100)}%`
+                text: `${Math.round(root.value * 100)}%`
                 font.pixelSize: Appearance.font.pixelSize.large || 18
                 font.weight: Font.Bold
                 font.features: { "tnum": 1 }

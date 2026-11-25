@@ -14,8 +14,6 @@ StyledPopup {
         return `${m}m`
     }
 
-    readonly property bool healthKnown: Battery.health > 0
-
     readonly property bool showTime: !(Battery.chargeState == 4
         || (Battery.isCharging ? Battery.timeToFull : Battery.timeToEmpty) <= 0
         || Battery.energyRate <= 0.01)
@@ -83,8 +81,7 @@ StyledPopup {
                 label: Translation.tr("Health")
                 iconText: "heart_check"
                 iconShape: MaterialShape.Shape.Clover4Leaf
-                value: root.healthKnown ? Battery.health / 100 : 0
-                valueText: root.healthKnown ? "" : "—"
+                value: Battery.health / 100
                 sublabel: Battery.chargeCycles > 0
                     ? `${Battery.chargeCycles} ${Translation.tr("cycles")}`
                     : Translation.tr("N/A")
@@ -94,17 +91,14 @@ StyledPopup {
 
             ResourceCard {
                 label: Battery.isCharging
-                    ? Translation.tr("Charge rate")
+                    ? Translation.tr("Charging")
                     : Translation.tr("Draw")
                 iconText: "bolt"
                 iconShape: MaterialShape.Shape.Pentagon
                 value: Math.min(Battery.energyRate / 60, 1.0)
-                valueText: Battery.chargeState == 4 ? "0 W" : `${Battery.energyRate.toFixed(1)} W`
                 sublabel: Battery.chargeState == 4
                     ? Translation.tr("Full")
-                    : Battery.isCharging
-                        ? Translation.tr("Plugged in")
-                        : Translation.tr("On battery")
+                    : `${Battery.energyRate.toFixed(2)}W`
                 sublabelColor: Appearance.colors.colOnSurfaceVariant
                 cardWidth: 160
             }

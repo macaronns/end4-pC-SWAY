@@ -1,4 +1,3 @@
-
 import qs.modules.common
 import qs.modules.common.widgets
 import qs.services
@@ -7,8 +6,6 @@ import QtQuick.Layouts
 
 BarWidgetSwitcher {
     id: root
-    property color contentColor: Appearance.colors.colOnLayer1
-    property bool contentColorOverridden: false
     property bool borderless: Config.options.bar.borderless
     property bool showDate: Config.options.time.showDate
     property var today: new Date()
@@ -38,7 +35,7 @@ BarWidgetSwitcher {
                         required property string modelData
                         width: implicitWidth
                         horizontalAlignment: Text.AlignHCenter
-                        font.letterSpacing: -0.9
+                        font.letterSpacing: -0.2
                         font.features: { "tnum": 1 }
                         font.pixelSize: {
                             if (modelData.match(/am|pm/i))
@@ -46,7 +43,7 @@ BarWidgetSwitcher {
                             else
                                 return Appearance.font.pixelSize.large;
                         }
-                        color: root.contentColor
+                        color: Appearance.colors.colOnLayer1
                         text: modelData.padStart(2, "0")
                     }
                 }
@@ -56,7 +53,7 @@ BarWidgetSwitcher {
                 Layout.alignment: Qt.AlignHCenter
                 Layout.bottomMargin: 5
                 font.pixelSize: Appearance.font.pixelSize.smallest
-                color: root.contentColor
+                color: Appearance.colors.colOnLayer1
                 text: DateTime.shortDate
             }
         }
@@ -114,18 +111,18 @@ BarWidgetSwitcher {
             StyledText {
                 visible: root.showDate
                 font.pixelSize: Appearance.font.pixelSize.small
-                color: root.contentColor
+                color: Appearance.colors.colOnLayer1
                 text: DateTime.longDate
             }
             StyledText {
                 visible: root.showDate
                 font.pixelSize: Appearance.font.pixelSize.small
-                color: root.contentColor
+                color: Appearance.colors.colOnLayer1
                 text: "•"
             }
             StyledText {
-                font.pixelSize: Appearance.font.pixelSize.small
-                color: root.contentColor
+                font.pixelSize: Appearance.font.pixelSize.large
+                color: Appearance.colors.colOnLayer1
                 text: DateTime.time
                 font.letterSpacing: -0.4
                 font.features: { "tnum": 1 }
@@ -145,26 +142,21 @@ BarWidgetSwitcher {
             StyledText {
                 visible: root.showDate
                 font.pixelSize: Appearance.font.pixelSize.small
-                color: Appearance.colors.colOnLayer0
+                color: Appearance.colors.colOnPrimaryContainer
                 text: DateTime.longDate
                 Layout.alignment: Qt.AlignVCenter
-                Layout.preferredHeight: 24
-                verticalAlignment: Text.AlignVCenter
                 leftPadding: 5
             }
 
             Rectangle {
                 implicitWidth: timeText.implicitWidth + 16
                 implicitHeight: 24
-                Layout.alignment: Qt.AlignVCenter
                 radius: Appearance.rounding.full
                 color: Appearance.colors.colPrimary
 
                 StyledText {
                     id: timeText
-                    anchors.fill: parent
-                    horizontalAlignment: Text.AlignHCenter
-                    verticalAlignment: Text.AlignVCenter
+                    anchors.centerIn: parent
                     font.pixelSize: Appearance.font.pixelSize.smallie
                     color: Appearance.colors.colOnPrimary
                     font.weight: Font.Bold
@@ -185,9 +177,7 @@ BarWidgetSwitcher {
                 Layout.leftMargin: -10
                 StyledText {
                     id: ampmText
-                    anchors.fill: parent
-                    horizontalAlignment: Text.AlignHCenter
-                    verticalAlignment: Text.AlignVCenter
+                    anchors.centerIn: parent
                     font.pixelSize: Appearance.font.pixelSize.smaller
                     color: Appearance.colors.colPrimary
                     text: pill.ampm

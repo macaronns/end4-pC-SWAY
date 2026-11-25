@@ -1,4 +1,4 @@
-#!/usr/bin/env -S\_/bin/sh\_-c\_"source\_\$(eval\_echo\_\$ILLOGICAL_IMPULSE_VIRTUAL_ENV)/bin/activate&&exec\_python\_-E\_"\$0"\_"\$@""
+#!/usr/bin/env python
 import argparse
 import math
 import json
@@ -137,16 +137,7 @@ if args.termscheme is not None:
         json_termscheme = f.read()
     term_source_colors = json.loads(json_termscheme)['dark' if darkmode else 'light']
 
-    # materialyoucolor >= 3 renamed 'primary_paletteKeyColor' to 'primaryPaletteKeyColor'.
-    # Accept both so the script works on either version.
-    primary_key_color = material_colors.get('primaryPaletteKeyColor') \
-        or material_colors.get('primary_paletteKeyColor')
-    if primary_key_color is None:
-        raise KeyError(
-            "Primary palette key color not found in MaterialDynamicColors; "
-            "unsupported materialyoucolor version"
-        )
-    primary_color_argb = hex_to_argb(primary_key_color)
+    primary_color_argb = hex_to_argb(material_colors["primary"])
     for color, val in term_source_colors.items():
         if(args.scheme == 'monochrome') :
             term_colors[color] = val
@@ -188,3 +179,13 @@ else:
         rgba_source = rgba_from_argb(hex_to_argb(code_source))
         print(f"{color.ljust(6)} : {display_color(rgba_source)} {code_source} --> {display_color(rgba)} {code}")
     print('-----------------------------------------------')
+
+# --- AJOUT MANUEL : Génération directe du JSON ---
+import json, os
+out_dir = os.path.expanduser("~/.local/state/quickshell/user/generated")
+os.makedirs(out_dir, exist_ok=True)
+all_colors = {"darkmode": darkmode, "transparent": transparent}
+all_colors.update(material_colors)
+all_colors.update(term_colors)
+with open(os.path.join(out_dir, "colors.json"), "w") as f:
+    json.dump(all_colors, f, indent=2)

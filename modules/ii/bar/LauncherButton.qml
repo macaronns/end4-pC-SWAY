@@ -7,10 +7,8 @@ import qs.modules.common.functions
 
 RippleButton {
     id: root
-    property color contentColor: Appearance.colors.colOnLayer0
-    property bool contentColorOverridden: false
     property bool vertical: Config.options.bar.vertical
-    property bool isMaterial: Config.options.bar.cornerStyle === 3 || Config.options.bar.cornerStyle === 4
+    property bool isMaterial: Config.options.bar.cornerStyle === 3
 
     implicitWidth: 22
     implicitHeight: 22
@@ -32,6 +30,6 @@ RippleButton {
         anchors.centerIn: parent
         iconSize: 18
         text: "search"
-        color: root.contentColor
+        color: Appearance.colors.colOnLayer0
     }
 }

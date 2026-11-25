@@ -18,7 +18,7 @@ Singleton {
             'power': 'power',
             'screenshot': 'screenshot_monitor',
             'welcome': 'waving_hand',
-            'time': 'schedule',
+            'time': 'scheduleb',
             'installed': 'download',
             'configuration reloaded': 'reset_wrench',
             'unable': 'question_mark',

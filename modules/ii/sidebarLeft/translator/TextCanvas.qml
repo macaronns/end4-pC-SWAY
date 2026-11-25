@@ -23,13 +23,6 @@ Rectangle {
 
     signal inputTextChanged(); // Signal emitted when text changes
 
-    WindowGlass {
-        anchors.fill: parent
-        cardRadius: root.radius
-        tint: root.containerColor
-        tintStrength: 0.45
-    }
-
     ColumnLayout {
         id: inputColumn
         anchors.fill: parent

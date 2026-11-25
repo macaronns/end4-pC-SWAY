@@ -16,7 +16,6 @@ MouseArea {
 
     signal menuOpened(qsWindow: var)
     signal menuClosed()
-    signal styleEditorRequested()
 
     hoverEnabled: true
     acceptedButtons: Qt.LeftButton | Qt.RightButton
@@ -27,18 +26,15 @@ MouseArea {
         case Qt.LeftButton:
             item.activate();
             break;
+        case Qt.RightButton:
+            if (item.hasMenu)
+                if (menu.active && menu.item && typeof menu.item.close === "function")
+                    menu.item.close();
+                else 
+                    menu.open();
+            break;
         }
         event.accepted = true;
-    }
-    onClicked: (event) => {
-        if (event.button !== Qt.RightButton || !item.hasMenu) return;
-        if (menu.active && menu.item && typeof menu.item.close === "function")
-            menu.item.close();
-        else
-            menu.open();
-    }
-    onPressAndHold: (event) => {
-        if (event.button === Qt.RightButton) root.styleEditorRequested();
     }
     onEntered: {
         tooltip.text = TrayService.getTooltipForItem(root.item);

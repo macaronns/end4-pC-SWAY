@@ -96,7 +96,7 @@ TabButton {
         radius: Appearance?.rounding.normal
         implicitHeight: 42
         color: (root.hovered ? root.colBackgroundHover : root.colBackground)
-        layer.enabled: ripple.opacity > 0
+        layer.enabled: true
         layer.effect: OpacityMask {
             maskSource: Rectangle {
                 width: buttonBackground.width

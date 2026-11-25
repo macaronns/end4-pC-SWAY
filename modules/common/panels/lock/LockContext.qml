@@ -62,9 +62,6 @@ Scope {
     function tryUnlock(alsoInhibitIdle = false) {
         root.alsoInhibitIdle = alsoInhibitIdle;
         root.unlockInProgress = true;
-
-        stopFingerPam();
-
         pam.start();
     }
 
@@ -88,7 +85,6 @@ Scope {
             id: fingerprintOutputCollector
             onStreamFinished: {
                 root.fingerprintsConfigured = fingerprintOutputCollector.text.includes("Fingerprints for user");
-                root.tryFingerUnlock();
             }
         }
         onExited: (exitCode, exitStatus) => {
@@ -113,13 +109,12 @@ Scope {
         onCompleted: result => {
             if (result == PamResult.Success) {
                 root.unlocked(root.targetAction);
+                stopFingerPam();
             } else {
                 root.clearText();
                 root.unlockInProgress = false;
                 GlobalStates.screenUnlockFailed = true;
                 root.showFailure = true;
-
-                root.tryFingerUnlock();
             }
         }
     }

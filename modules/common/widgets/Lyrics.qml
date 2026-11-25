@@ -15,9 +15,6 @@ Item {
     property color indicatorColor: Appearance.colors.colPrimaryContainer
     property color indicatorShapeColor: Appearance.colors.colOnPrimaryContainer
     property int textAlignment: Text.AlignLeft
-    property real fontScale: 1.0
-    property bool animateTransitions: false
-    property real lineSpacing: 6
 
     implicitWidth: 200
     implicitHeight: 200
@@ -61,7 +58,7 @@ Item {
             Layout.fillWidth: true
             Layout.fillHeight: true
             visible: LyricsService.status === "ok"
-            spacing: root.lineSpacing
+            spacing: 6
 
             Repeater {
                 model: 7
@@ -74,9 +71,9 @@ Item {
                     text: LyricsService.slots[index] ?? ""
                     readonly property int dist: Math.abs(index - LyricsService.before)
                     font.pixelSize: {
-                        if (dist === 0) return Appearance.font.pixelSize.normal * root.fontScale
-                        if (dist === 1) return Appearance.font.pixelSize.small * root.fontScale
-                        return Appearance.font.pixelSize.smaller * root.fontScale
+                        if (dist === 0) return Appearance.font.pixelSize.normal
+                        if (dist === 1) return Appearance.font.pixelSize.small
+                        return Appearance.font.pixelSize.smaller
                     }
                     opacity: {
                         if (dist === 0) return 1.0
@@ -85,19 +82,6 @@ Item {
                         return 0.15
                     }
                     color: dist === 0 ? root.activeColor : root.textColor
-                    transform: Translate { id: lineSlide }
-                    onTextChanged: {
-                        if (root.animateTransitions) slideAnim.restart();
-                    }
-                    SequentialAnimation {
-                        id: slideAnim
-                        ScriptAction { script: lineSlide.y = 28 * root.fontScale }
-                        NumberAnimation { target: lineSlide; property: "y"; to: 0; duration: 420; easing.type: Easing.OutBack }
-                    }
-                    Behavior on font.pixelSize {
-                        enabled: root.animateTransitions
-                        NumberAnimation { duration: 300; easing.type: Easing.OutCubic }
-                    }
                     Behavior on opacity { NumberAnimation { duration: 250; easing.type: Easing.OutCubic } }
                 }
             }

@@ -150,15 +150,14 @@ Item {
         spacing: root.padding
 
         Item {
-            id: imagesArea
             Layout.fillWidth: true
             Layout.fillHeight: true
 
             layer.enabled: true
             layer.effect: OpacityMask {
                 maskSource: Rectangle {
-                    width: imagesArea.width
-                    height: imagesArea.height
+                    width: swipeView.width
+                    height: swipeView.height
                     radius: Appearance.rounding.small
                 }
             }
@@ -176,6 +175,7 @@ Item {
                 spacing: 10
                 
                 touchpadScrollFactor: Config.options.interactions.scrolling.touchpadScrollFactor * 1.4
+                mouseScrollFactor: Config.options.interactions.scrolling.mouseScrollFactor * 1.4
 
                 property int lastResponseLength: 0
                 Connections {

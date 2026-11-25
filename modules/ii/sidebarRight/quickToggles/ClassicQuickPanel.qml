@@ -18,7 +18,7 @@ AbstractQuickPanel {
         id: buttonGroup
         spacing: 5
         padding: 5
-        color: Config.options.background.widgets.glass.enable ? "transparent" : Appearance.colors.colLayer1
+        color: Appearance.colors.colLayer1
 
         NetworkToggle {
             altAction: () => {
@@ -31,7 +31,6 @@ AbstractQuickPanel {
             }
         }
         NightLight {}
-        LiveWallpaperToggle {}
         GameMode {}
         IdleInhibitor {}
         EasyEffectsToggle {}

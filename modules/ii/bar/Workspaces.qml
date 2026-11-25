@@ -12,37 +12,78 @@ import Quickshell
 
 ButtonMouseArea {
     id: root
-    property color contentColor: Appearance.colors.colOnLayer1
-    property bool contentColorOverridden: false
-    signal styleEditorRequested()
 
-    WorkspaceModel {
+    // Modèle Sway personnalisé (Filtré par écran)
+    QtObject {
         id: wsModel
-        screen: root.QsWindow.window?.screen
+        
+        // On récupère le nom de l'écran sur lequel cette barre s'affiche (ex: "DP-3")
+        property string currentMonitor: root.QsWindow.window?.screen?.name || ""
+
+        // On filtre la liste de Sway pour ne garder QUE les bureaux de cet écran !
+        property var workspaces: {
+            if (!WM.workspaces) return [];
+            return WM.workspaces.filter(w => w.monitorName === currentMonitor);
+        }
+        
+        property int shownCount: workspaces ? workspaces.length : 0
+        
+        // WM.activeWorkspace est un objet, on va chercher son .id
+        property int activeId: (WM.activeWorkspace && WM.activeWorkspace.id) ? WM.activeWorkspace.id : 0
+        
+        property int activeIndex: {
+            if (!workspaces || workspaces.length === 0) return 0;
+            for (let i = 0; i < workspaces.length; i++) {
+                if (workspaces[i].id === activeId) return i;
+            }
+            return 0;
+        }
+
+        function getWorkspaceIdAt(index) {
+            if (workspaces && index >= 0 && index < workspaces.length) {
+                // On récupère la propriété .id de l'objet
+                return workspaces[index].id;
+            }
+            return -1;
+        }
+        
+        function getDisplayName(id) {
+            if (id === undefined || id === null || id === -1) return "";
+            let strId = id.toString();
+            // On recoupe Swaysome (ex: 21 -> 1)
+            if (strId.length > 1) {
+                return strId.slice(-1);
+            }
+            return strId;
+        }
+
+        property bool specialWorkspaceActive: false
+        property string specialWorkspaceName: ""
+        property int fakeWorkspace: -1
+        
+        property var occupied: [true, true, true, true, true, true, true, true, true, true]
+        property var biggestWindow: [null, null, null, null, null, null, null, null, null, null]
     }
 
     property bool vertical: Config.options.bar.vertical
     property bool superPressAndHeld: false // Relevant modifications at bottom of file
 
-    property real workspaceButtonWidth: (Config.options.bar.cornerStyle === 3 || Config.options.bar.cornerStyle === 4) ? 30 : 26
+    property real workspaceButtonWidth: Config.options.bar.cornerStyle === 3 ? 30 : 26
     property real activeWorkspaceMargin: 2
     property real activeWorkspaceSize: workspaceButtonWidth - activeWorkspaceMargin * 2
     property real workspaceIconSize: workspaceButtonWidth * 0.69
     property real workspaceIconSizeShrinked: workspaceButtonWidth * 0.55
     property real workspaceIconOpacityShrinked: 1
     property real workspaceIconMarginShrinked: -4
-    property int workspaceIndexInGroup: (wsModel.activeNumber - 1) % wsModel.shownCount
-    readonly property string style: Config.options.bar.workspaces.style ?? "default"
-    readonly property bool altStyle: root.style !== "default"
-    readonly property real slotLength: root.style === "gnome" ? 16 : root.style === "dots" ? 24 : root.style === "ticks" ? 16 : root.workspaceButtonWidth
+    property int workspaceIndexInGroup: wsModel.activeIndex
     property real specialTextSize: workspaceButtonWidth * 0.5
 
     Layout.alignment: vertical ? Qt.AlignHCenter : Qt.AlignVCenter
     Layout.fillWidth: vertical
     Layout.fillHeight: !vertical
     readonly property real barThickness: vertical ? Appearance.sizes.verticalBarWidth : Appearance.sizes.barHeight
-    implicitWidth: vertical ? barThickness : (altStyle ? (altLoader.item?.implicitWidth ?? 0) : occupiedIndicators.implicitWidth)
-    implicitHeight: vertical ? (altStyle ? (altLoader.item?.implicitHeight ?? 0) : occupiedIndicators.implicitHeight) : barThickness
+    implicitWidth: vertical ? barThickness : occupiedIndicators.implicitWidth
+    implicitHeight: vertical ? occupiedIndicators.implicitHeight : barThickness
 
     property real specialBlur: (wsModel.specialWorkspaceActive && !containsMouse) ? 1 : 0
     Behavior on specialBlur {
@@ -54,8 +95,7 @@ ButtonMouseArea {
     hoverEnabled: true
     property int hoverIndex: {
         const position = root.vertical ? mouseY : mouseX;
-        if (root.altStyle && altLoader.item) return altLoader.item.indexAt(position);
-        return Math.floor(position / root.slotLength);
+        return Math.floor(position / root.workspaceButtonWidth);
     }
 
     function switchWorkspaceToHovered() {
@@ -64,14 +104,8 @@ ButtonMouseArea {
     onPressed: mouse => {
         if (mouse.button == Qt.LeftButton)
             switchWorkspaceToHovered();
-    }
-    onClicked: mouse => {
-        if (mouse.button == Qt.RightButton)
+        else if (mouse.button == Qt.RightButton)
             GlobalStates.overviewOpen = !GlobalStates.overviewOpen;
-    }
-    onPressAndHold: mouse => {
-        if (mouse.button == Qt.RightButton)
-            root.styleEditorRequested();
     }
     onWheel: event => {
         if (event.angleDelta.y < 0)
@@ -80,30 +114,10 @@ ButtonMouseArea {
             WM.switchWorkspaceRelative("prev");
     }
 
-    Loader {
-        id: altLoader
-        active: root.altStyle
-        anchors.centerIn: parent
-        scale: 1 - 0.08 * root.specialBlur
-        layer.smooth: true
-        layer.enabled: root.altStyle && root.specialBlur > 0
-        layer.effect: MultiEffect {
-            brightness: -0.1 * root.specialBlur
-            blurEnabled: true
-            blur: root.specialBlur
-            blurMax: 32
-        }
-        sourceComponent: WorkspacesAlt {
-            host: root
-            model: wsModel
-        }
-    }
-
     // Indications
     Item {
         id: regularWorkspaces
         anchors.fill: parent
-        visible: !root.altStyle
 
         scale: 1 - 0.08 * root.specialBlur
         layer.smooth: true
@@ -241,7 +255,7 @@ ButtonMouseArea {
                 delegate: WorkspaceItem {
                     id: wsApp
                     property var biggestWindow: wsModel.biggestWindow[index]
-                    property var mainAppIconSource: SystemAppearance.iconPath(AppSearch.guessIcon(biggestWindow?.class), "image-missing")
+                    property var mainAppIconSource: Quickshell.iconPath(AppSearch.guessIcon(biggestWindow?.class), "image-missing")
 
                     AppIcon {
                         id: appIcon
@@ -330,11 +344,14 @@ ButtonMouseArea {
             implicitHeight: root.vertical ? undirectionalLength : undirectionalWidth
 
             StyledText {
-                id: specialWsText
                 anchors.centerIn: parent
-                text: (!root.vertical ? wsModel.specialWorkspaceName : "S")
-                color: Appearance.colors.colOnPrimary
-                font.pixelSize: root.specialTextSize
+                font {
+                    pixelSize: Appearance.font.pixelSize.small
+                    family: Config.options?.bar.workspaces.useNerdFont ? Appearance.font.family.iconNerd : defaultFont
+                }
+                color: wsNum.contentColor
+                // On utilise notre fonction pour formater le nom Swaysome (11 -> 1)
+                text: "ID:" + wsNum.wsId
             }
 
             Behavior on undirectionalLength {
@@ -393,16 +410,8 @@ ButtonMouseArea {
         id: wsNum
         property bool hasBiggestWindow: !!wsModel.biggestWindow[index]
         property int wsId: wsModel.getWorkspaceIdAt(index)
-        property color contentColor: (wsModel.occupied[wsNum.index] && wsId !== wsModel.fakeWorkspace) ? Appearance.colors.colOnSecondaryContainer : (root.contentColorOverridden ? Qt.alpha(root.contentColor, 0.5) : Appearance.colors.colOnLayer1Inactive)
-        property bool showingNumbers: {
-            if (root.superPressAndHeld)
-                return true;
-            if (GlobalStates.screenLocked)
-                return false;
-            if (Config.options?.bar.workspaces.alwaysShowNumbers && (!Config.options?.bar.workspaces.showAppIcons || !wsNum.hasBiggestWindow))
-                return true;
-            return false;
-        }
+        property color contentColor: (wsModel.occupied[wsNum.index] && wsId !== wsModel.fakeWorkspace) ? Appearance.colors.colOnSecondaryContainer : Appearance.colors.colOnLayer1Inactive
+        property bool showingNumbers: true // Forcé à Vrai sous Sway
 
         FadeLoader {
             shown: !wsNum.showingNumbers

@@ -10,11 +10,9 @@ import Quickshell.Services.UPower
 
 Item {
     id: root
-    property color contentColor: Appearance.colors.colOnLayer2
-    property bool contentColorOverridden: false
     property bool borderless: Config.options.bar.borderless
     property bool vertical: Config.options.bar.vertical
-    property bool isMaterial: Config.options.bar.cornerStyle === 3 || Config.options.bar.cornerStyle === 4
+    property bool isMaterial: Config.options.bar.cornerStyle === 3
 
     implicitWidth: isMaterial && !root.vertical ? flow.implicitWidth : root.vertical ? Appearance.sizes.verticalBarWidth - 14 : flow.implicitWidth + 4
     implicitHeight: isMaterial && root.vertical ? flow.implicitHeight: isMaterial ? 32 : root.vertical ? flow.implicitHeight + 4 : Appearance.sizes.barHeight
@@ -47,7 +45,7 @@ Item {
                     horizontalAlignment: Qt.AlignHCenter
                     fill: 1; text: "screenshot_region"
                     iconSize: Appearance.font.pixelSize.large
-                    color: root.contentColor
+                    color: Appearance.colors.colOnLayer2
                 }
             }
         }
@@ -72,7 +70,7 @@ Item {
                     horizontalAlignment: Qt.AlignHCenter
                     fill: 1; text: "colorize"
                     iconSize: Appearance.font.pixelSize.large
-                    color: root.contentColor
+                    color: Appearance.colors.colOnLayer2
                 }
             }
         }
@@ -124,7 +122,7 @@ Item {
                         fill: 1
                         text: recordingItem.isRecording ? "stop_circle" : "screen_record"
                         iconSize: Appearance.font.pixelSize.large
-                        color: recordingItem.isRecording ? Appearance.colors.colPrimary : root.contentColor
+                        color: recordingItem.isRecording ? Appearance.colors.colPrimary : Appearance.colors.colOnLayer2
                         Behavior on color { ColorAnimation { duration: 200 } }
                     }
                 }
@@ -134,7 +132,7 @@ Item {
                     anchors.left: btn.right
                     anchors.leftMargin: 8
                     anchors.verticalCenter: btn.verticalCenter
-                    reveal: recordingItem.isRecording && !root.vertical && !GlobalStates.dynamicIslandEnabled
+                    reveal: recordingItem.isRecording && !root.vertical
 
                     StyledText {
                         width: implicitWidth
@@ -142,7 +140,7 @@ Item {
                         font.pixelSize: Appearance.font.pixelSize.small
                         font.features: { "tnum": 1 }
                         font.letterSpacing: -0.3
-                        color: root.contentColor
+                        color: Appearance.colors.colOnLayer2
                         rightPadding: 8
                         Component.onCompleted: width = implicitWidth
                     }
@@ -179,7 +177,7 @@ Item {
                     horizontalAlignment: Qt.AlignHCenter
                     fill: 0; text: "keyboard"
                     iconSize: Appearance.font.pixelSize.large
-                    color: root.contentColor
+                    color: Appearance.colors.colOnLayer2
                 }
             }
         }
@@ -204,7 +202,7 @@ Item {
                     horizontalAlignment: Qt.AlignHCenter
                     fill: 0; text: "imagesmode"
                     iconSize: Appearance.font.pixelSize.large
-                    color: root.contentColor
+                    color: Appearance.colors.colOnLayer2
                 }
             }
         }
@@ -230,7 +228,7 @@ Item {
                     fill: 0
                     text: Pipewire.defaultAudioSource?.audio?.muted ? "mic_off" : "mic"
                     iconSize: Appearance.font.pixelSize.large
-                    color: root.contentColor
+                    color: Appearance.colors.colOnLayer2
                 }
             }
         }
@@ -266,7 +264,7 @@ Item {
                     fill: 0
                     text: Appearance.m3colors.darkmode ? "light_mode" : "dark_mode"
                     iconSize: Appearance.font.pixelSize.large
-                    color: root.contentColor
+                    color: Appearance.colors.colOnLayer2
                 }
             }
         }
@@ -320,7 +318,7 @@ Item {
                         case PowerProfile.Performance: return "local_fire_department"
                     }
                     iconSize: Appearance.font.pixelSize.large
-                    color: root.contentColor
+                    color: Appearance.colors.colOnLayer2
                 }
             }
         }

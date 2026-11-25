@@ -174,7 +174,6 @@ ColumnLayout {
                 spacing: 0
                 ScrollView {
                     id: codeScrollView
-                    property TouchpadScrollArea _touchpadScroll: TouchpadScrollArea { flickable: codeScrollView.contentItem }
                     Layout.fillWidth: true
                     // Layout.fillHeight: true
                     implicitWidth: parent.width
@@ -210,7 +209,6 @@ ColumnLayout {
 
                     TextArea { // Code
                         id: codeTextArea
-                        ContextMenu.menu: StyledTextEditMenu { editor: codeTextArea }
                         Layout.fillWidth: true
                         readOnly: !editing
                         selectByMouse: enableMouseSelection || editing

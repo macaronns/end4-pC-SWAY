@@ -23,8 +23,18 @@ AbstractBackgroundWidget {
     hoverEnabled: true
 
     readonly property var playerList: MprisController.players
-    property MprisPlayer currentPlayer: MprisController.activePlayer
-    property var artUrl: currentPlayer?.trackArtUrl ?? ""
+    property MprisPlayer currentPlayer: {
+        const preferred = Config.options.bar.media.preferredPlayer.trim().toLowerCase()
+        if (preferred.length === 0) return MprisController.activePlayer
+        const _ = MprisController.players.count
+        for (const p of MprisController.players) {
+            if ((p.identity ?? "").toLowerCase().includes(preferred) ||
+                (p.desktopEntry ?? "").toLowerCase().includes(preferred))
+                return p
+        }
+        return MprisController.activePlayer
+    }
+    property var artUrl: currentPlayer?.trackArtUrl
     property string artDownloadLocation: Directories.coverArt
     property string artFileName: Qt.md5(artUrl)
     property string artFilePath: `${artDownloadLocation}/${artFileName}`
@@ -86,12 +96,9 @@ AbstractBackgroundWidget {
     property bool showLyrics: false
 
     property string displayedArtFilePath: {
-        if (!root.artUrl || root.artUrl.length === 0) return ""
-        if (root.artUrl.startsWith("data:")) return root.artUrl
-        if (root.artUrl.startsWith("file:/")) return root.artUrl
-        if (root.artUrl.startsWith("/")) return "file://" + root.artUrl
         if (!root.downloaded) return ""
-        return Qt.resolvedUrl(artFilePath)
+        if (root.artUrl && root.artUrl.startsWith("file://")) return root.artUrl
+        return root.downloaded ? Qt.resolvedUrl(artFilePath) : ""
     }
 
     implicitHeight: card.implicitHeight
@@ -104,23 +111,19 @@ AbstractBackgroundWidget {
             root.downloaded = false
             return
         }
-        if (root.artUrl.startsWith("data:") || root.artUrl.startsWith("file:/") || root.artUrl.startsWith("/")) {
+        if (root.artUrl.startsWith("file://")) {
             root.downloaded = true
             return
         }
-        if (root.artUrl.startsWith("http://") || root.artUrl.startsWith("https://")) {
-            coverArtDownloader.targetFile = root.artUrl
-            coverArtDownloader.artFilePath = root.artFilePath
-            root.downloaded = false
-            coverArtDownloader.running = true
-        } else {
-            root.downloaded = true
-        }
+        coverArtDownloader.targetFile = root.artUrl
+        coverArtDownloader.artFilePath = root.artFilePath
+        root.downloaded = false
+        coverArtDownloader.running = true
     }
 
     Process {
         id: coverArtDownloader
-        property string targetFile: root.artUrl ?? ""
+        property string targetFile: root.artUrl
         property string artFilePath: root.artFilePath
         command: ["bash", "-c", `[ -f ${artFilePath} ] || curl -sSL '${targetFile}' -o '${artFilePath}'`]
         onExited: { root.downloaded = true }
@@ -129,17 +132,16 @@ AbstractBackgroundWidget {
     StyledRectangularShadow {
         target: card
         z: -2
-        visible: Config.options.background.widgets.shadow
     }
 
-    WidgetCard {
+    Rectangle {
         id: card
-        widget: root
-        shadowed: false
         implicitWidth: root.widgetWidth
         implicitHeight: (root.sizeMode === "2x3" || root.sizeMode === "2x2")
             ? root.doubleCardHeight
             : (root.cardHeight + (root.sizeMode === "1x3" && root.showLyrics ? 264 : 0))
+        radius: Appearance.rounding?.verylarge ?? 30
+        color: Appearance.colors.colPrimaryContainer
         clip: true
 
         Behavior on implicitHeight {
@@ -827,7 +829,7 @@ AbstractBackgroundWidget {
 
                             StyledText {
                                 Layout.fillWidth: true
-                                text: root.currentPlayer?.trackTitle ?? Translation.tr("Play")
+                                text: root.currentPlayer?.trackTitle ?? Translation.tr("Something")
                                 font.pixelSize: Appearance.font.pixelSize.small
                                 font.weight: Font.DemiBold
                                 font.italic: true
@@ -836,7 +838,7 @@ AbstractBackgroundWidget {
                             }
                             StyledText {
                                 Layout.fillWidth: true
-                                text: root.currentPlayer?.trackArtist ?? "Something"
+                                text: root.currentPlayer?.trackArtist ?? "Play"
                                 font.pixelSize: Appearance.font.pixelSize.smaller
                                 color: Appearance.colors.colOnPrimaryContainer
                                 opacity: 0.65

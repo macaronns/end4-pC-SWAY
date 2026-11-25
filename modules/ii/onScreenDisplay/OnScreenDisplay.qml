@@ -16,7 +16,6 @@ Scope {
     property var focusedScreen: Quickshell.screens.find(s => s.name === Hyprland.focusedMonitor?.name)
 
     property string currentIndicator: "volume"
-    onCurrentIndicatorChanged: GlobalStates.osdIndicatorType = currentIndicator
     property var indicators: [
         {
             id: "volume",
@@ -127,7 +126,7 @@ Scope {
 
             implicitWidth: columnLayout.implicitWidth
             implicitHeight: columnLayout.implicitHeight
-            visible: osdLoader.active && !GlobalStates.dynamicIslandEnabled
+            visible: osdLoader.active
 
             ColumnLayout {
                 id: columnLayout

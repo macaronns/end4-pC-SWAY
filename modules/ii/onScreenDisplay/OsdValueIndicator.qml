@@ -19,18 +19,12 @@ Item {
 
     Rectangle {
         id: valueIndicator
-        WindowGlass {
-            anchors.fill: parent
-            glassEnabled: (parent?.color.a ?? 0) > 0
-            cardRadius: parent?.radius ?? 0
-            tint: parent?.color ?? 'transparent'
-        }
         anchors {
             fill: parent
             margins: Appearance.sizes.elevationMargin
         }
         radius: Appearance.rounding.full
-        color: Appearance.colors.colUiBackground
+        color: Appearance.colors.colLayer0
         implicitWidth: valueRow.implicitWidth
         implicitHeight: valueRow.implicitHeight
 

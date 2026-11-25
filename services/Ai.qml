@@ -281,26 +281,13 @@ Singleton {
             "key_get_description": Translation.tr("**Pricing**: free. Data used for training.\n\n**Instructions**: Log into Google account, allow AI Studio to create Google Cloud project or whatever it asks, go back and click Get API key"),
             "api_format": "gemini",
         }),
-        "mistral-medium-latest": aiModelComponent.createObject(this, {
-            "name": "Mistral Medium Latest",
+        "mistral-medium-3": aiModelComponent.createObject(this, {
+            "name": "Mistral Medium 3",
             "icon": "mistral-symbolic",
             "description": Translation.tr("Online | %1's model | Delivers fast, responsive and well-formatted answers. Disadvantages: not very eager to do stuff; might make up unknown function calls").arg("Mistral"),
-            "homepage": "https://mistral.ai",
+            "homepage": "https://mistral.ai/news/mistral-medium-3",
             "endpoint": "https://api.mistral.ai/v1/chat/completions",
-            "model": "mistral-medium-latest",
-            "requires_key": true,
-            "key_id": "mistral",
-            "key_get_link": "https://console.mistral.ai/api-keys",
-            "key_get_description": Translation.tr("**Instructions**: Log into Mistral account, go to Keys on the sidebar, click Create new key"),
-            "api_format": "mistral",
-        }),
-        "mistral-small-2603": aiModelComponent.createObject(this, {
-            "name": "Mistral Small 4",
-            "icon": "mistral-symbolic",
-            "description": Translation.tr("Online | %1's model | Delivers fast, responsive and well-formatted answers. Disadvantages: not very eager to do stuff; might make up unknown function calls").arg("Mistral"),
-            "homepage": "https://mistral.ai",
-            "endpoint": "https://api.mistral.ai/v1/chat/completions",
-            "model": "mistral-small-2603",
+            "model": "mistral-medium-2505",
             "requires_key": true,
             "key_id": "mistral",
             "key_get_link": "https://console.mistral.ai/api-keys",
@@ -309,12 +296,7 @@ Singleton {
         }),
     }
     property var modelList: Object.keys(root.models)
-    property var currentModelId: {
-        const saved = Persistent.states?.ai?.model;
-        if (saved === "mistral-medium-3") return "mistral-medium-latest";
-        if (saved === "mistral-small") return "mistral-small-2603";
-        return (saved && models[saved]) ? saved : modelList[0];
-    }
+    property var currentModelId: Persistent.states?.ai?.model || modelList[0]
 
     property var apiStrategies: {
         "openai": openaiApiStrategy.createObject(this),
@@ -342,22 +324,16 @@ Singleton {
     property string pendingFilePath: ""
 
     Component.onCompleted: {
-        if (Persistent.states?.ai?.model === "mistral-medium-3") {
-            Persistent.states.ai.model = "mistral-medium-latest";
-        }
         setModel(currentModelId, false, false); // Do necessary setup for model
         root.addUserModels() // Config onReadyChanged above might not fire if config is loaded before this service
     }
 
     function guessModelLogo(model) {
-        const lower = model.toLowerCase();
-        if (lower.includes("llama")) return "ollama-symbolic";
-        if (lower.includes("gemma")) return "google-gemini-symbolic";
-        if (lower.includes("deepseek")) return "deepseek-symbolic";
-        if (lower.includes("mistral") || lower.includes("mixtral") || lower.includes("ministral") || lower.includes("codestral")) return "mistral-symbolic";
-        if (lower.includes("qwen")) return "spark-symbolic";
-        if (/^phi\d*:/i.test(model) || lower.includes("phi")) return "microsoft-symbolic";
-        return "spark-symbolic";
+        if (model.includes("llama")) return "ollama-symbolic";
+        if (model.includes("gemma")) return "google-gemini-symbolic";
+        if (model.includes("deepseek")) return "deepseek-symbolic";
+        if (/^phi\d*:/i.test(model)) return "microsoft-symbolic";
+        return "ollama-symbolic";
     }
 
     function guessModelName(model) {
@@ -399,11 +375,6 @@ Singleton {
                             "endpoint": "http://localhost:11434/v1/chat/completions",
                             "model": model,
                             "requires_key": false,
-                            "extraParams": {
-                                "options": {
-                                    "num_ctx": Config?.options?.ai?.ollamaNumCtx ?? 32768
-                                }
-                            }
                         })
                     });
 
@@ -414,46 +385,6 @@ Singleton {
                 }
             }
         }
-    }
-
-    Process {
-        id: getVllmModels
-        running: true
-        command: ["bash", "-c", `${Directories.scriptPath}/ai/show-running-vllm-models.sh "${Config?.options?.ai?.vllmEndpoint ?? "http://localhost:8000"}"`.replace(/file:\/\//, "")]
-        stdout: SplitParser {
-            onRead: data => {
-                try {
-                    if (data.length === 0) return;
-                    const dataJson = JSON.parse(data);
-                    const vllmBase = (Config?.options?.ai?.vllmEndpoint ?? "http://localhost:8000").replace(/\/+$/, '');
-                    dataJson.forEach(model => {
-                        const safeModelName = root.safeModelName("vllm-" + model);
-                        const cleanModel = model.includes('/') ? model.split('/').pop() : model;
-                        root.addModel(safeModelName, {
-                            "name": `vLLM: ${guessModelName(cleanModel)}`,
-                            "icon": guessModelLogo(model),
-                            "description": Translation.tr("Local vLLM model | %1").arg(model),
-                            "homepage": "https://docs.vllm.ai",
-                            "endpoint": `${vllmBase}/v1/chat/completions`,
-                            "model": model,
-                            "requires_key": false,
-                        });
-                    });
-
-                    root.modelList = Object.keys(root.models);
-
-                } catch (e) {
-                    console.log("Could not fetch vLLM models:", e);
-                }
-            }
-        }
-    }
-
-    function refreshLocalModels() {
-        getOllamaModels.running = false;
-        getOllamaModels.running = true;
-        getVllmModels.running = false;
-        getVllmModels.running = true;
     }
 
     Process {
@@ -518,20 +449,18 @@ Singleton {
         promptLoader.reload();
     }
 
-    function addMessage(message, role, localFilePath = "") {
+    function addMessage(message, role) {
         if (message.length === 0) return;
         const aiMessage = aiMessageComponent.createObject(root, {
             "role": role,
             "content": message,
             "rawContent": message,
-            "localFilePath": localFilePath,
             "thinking": false,
             "done": true,
         });
         const id = idForMessage(aiMessage);
         root.messageIDs = [...root.messageIDs, id];
         root.messageByID[id] = aiMessage;
-        return aiMessage;
     }
 
     function removeMessage(index) {
@@ -551,15 +480,13 @@ Singleton {
     }
 
     function getModel() {
-        return models[currentModelId] ?? models[modelList[0]];
+        return models[currentModelId];
     }
 
     function setModel(modelId, feedback = true, setPersistentState = true) {
         if (!modelId) modelId = ""
-        // Find the real model ID case-insensitively.
-        const matchedModelId = modelList.find(id => id.toLowerCase() === modelId.toLowerCase())
-        if (matchedModelId !== undefined) {
-            modelId = matchedModelId
+        modelId = modelId.toLowerCase()
+        if (modelList.indexOf(modelId) !== -1) {
             const model = models[modelId]
             // See if policy prevents online models
             if (Config.options.policies.ai === 2 && !model.endpoint.includes("localhost")) {
@@ -792,8 +719,7 @@ Singleton {
 
     function sendUserMessage(message) {
         if (message.length === 0) return;
-        const attached = root.pendingFilePath;
-        root.addMessage(message, "user", attached);
+        root.addMessage(message, "user");
         requester.makeRequest();
     }
 

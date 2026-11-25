@@ -1,7 +1,6 @@
 import qs.services
 import qs.modules.common
 import qs.modules.common.widgets
-import qs.modules.common.functions
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
@@ -29,7 +28,7 @@ AbstractQuickPanel {
     readonly property real baseCellHeight: 56
 
     readonly property list<string> availableToggleTypes: {
-        const base = ["network", "bluetooth", "idleInhibitor", "easyEffects", "nightLight", "darkMode", "cloudflareWarp", "gameMode", "screenSnip", "colorPicker", "onScreenKeyboard", "mic", "audio", "notifications", "powerProfile","musicRecognition", "antiFlashbang", "vpn"]
+        const base = ["network", "bluetooth", "idleInhibitor", "easyEffects", "nightLight", "darkMode", "cloudflareWarp", "gameMode", "screenSnip", "colorPicker", "onScreenKeyboard", "mic", "audio", "notifications", "powerProfile","musicRecognition", "antiFlashbang"]
         return WM.compositor === "hyprland" ? base : base.filter(t => t !== "gameMode")
     }
     readonly property int columns: Config.options.sidebar.quickToggles.android.columns
@@ -46,10 +45,6 @@ AbstractQuickPanel {
     readonly property list<var> unusedToggleRows: toggleRowsForList(unusedToggles)
 
     property alias dropIndicator: dropIndicator
-
-    function rowKeys(rows) {
-        return rows.map(row => row.map(toggle => `${toggle.type}:${toggle.size}`).join("|"));
-    }
 
     function toggleRowsForList(togglesList) {
         var rows = [];
@@ -84,12 +79,12 @@ AbstractQuickPanel {
             Repeater {
                 id: usedRowsRepeater
                 model: ScriptModel {
-                    values: root.rowKeys(root.toggleRows)
+                    values: Array(root.toggleRows.length)
                 }
                 delegate: ButtonGroup {
                     id: toggleRow
                     required property int index
-                    property var rowData: root.toggleRows[index]
+                    property var modelData: root.toggleRows[index]
                     property int startingIndex: {
                         const rows = root.toggleRows;
                         let sum = 0;
@@ -100,7 +95,7 @@ AbstractQuickPanel {
 
                     Repeater {
                         model: ScriptModel {
-                            values: toggleRow?.rowData ?? []
+                            values: toggleRow?.modelData ?? []
                             objectProp: "type"
                         }
                         delegate: AndroidToggleDelegateChooser {
@@ -117,9 +112,35 @@ AbstractQuickPanel {
                             onOpenBluetoothDialog: root.openBluetoothDialog()
                             onOpenNightLightDialog: root.openNightLightDialog()
                             onOpenWifiDialog: root.openWifiDialog()
-                            onOpenVpnDialog: root.openVpnDialog()
                         }
                     }
+                }
+            }
+
+            Rectangle {
+                id: dropIndicator
+                visible: false
+                z: 99
+                width: 3
+                radius: 2
+                color: Appearance.colors.colPrimary
+
+                Behavior on x { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
+                Behavior on y { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
+
+                Rectangle {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    anchors.top: parent.top
+                    anchors.topMargin: -4
+                    width: 8; height: 8; radius: 4
+                    color: Appearance.colors.colPrimary
+                }
+                Rectangle {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    anchors.bottom: parent.bottom
+                    anchors.bottomMargin: -4
+                    width: 8; height: 8; radius: 4
+                    color: Appearance.colors.colPrimary
                 }
             }
         }
@@ -146,17 +167,17 @@ AbstractQuickPanel {
 
                 Repeater {
                     model: ScriptModel {
-                        values: root.rowKeys(root.unusedToggleRows)
+                        values: Array(root.unusedToggleRows.length)
                     }
                     delegate: ButtonGroup {
                         id: unusedToggleRow
                         required property int index
-                        property var rowData: root.unusedToggleRows[index]
+                        property var modelData: root.unusedToggleRows[index]
                         spacing: root.spacing
 
                         Repeater {
                             model: ScriptModel {
-                                values: unusedToggleRow?.rowData ?? []
+                                values: unusedToggleRow?.modelData ?? []
                                 objectProp: "type"
                             }
                             delegate: AndroidToggleDelegateChooser {
@@ -187,19 +208,5 @@ AbstractQuickPanel {
                 Config.options.sidebar.quickToggles.android.columns = value;
             }
         }
-    }
-    Rectangle {
-        id: dropIndicator
-        visible: false
-        z: 99
-        radius: Appearance.rounding.large
-        color: ColorUtils.transparentize(Appearance.colors.colPrimary, 0.88)
-        border.width: 2
-        border.color: ColorUtils.transparentize(Appearance.colors.colPrimary, 0.35)
-
-        Behavior on x { NumberAnimation { duration: 150; easing.type: Easing.OutCubic } }
-        Behavior on y { NumberAnimation { duration: 150; easing.type: Easing.OutCubic } }
-        Behavior on width { NumberAnimation { duration: 150; easing.type: Easing.OutCubic } }
-        Behavior on height { NumberAnimation { duration: 150; easing.type: Easing.OutCubic } }
     }
 }

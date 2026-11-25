@@ -29,11 +29,6 @@ Item {
     property string targetLanguage: Config.options.language.translator.targetLanguage
     property string sourceLanguage: Config.options.language.translator.sourceLanguage
     property string hostLanguage: targetLanguage
-    readonly property string engine: {
-        const configured = Config.options.language.translator.engine ?? "auto";
-        return configured === "auto" ? "bing" : configured;
-    }
-    property bool failed: false
 
     // States
     property bool showLanguageSelector: false
@@ -64,27 +59,22 @@ Item {
         interval: Config.options.sidebar.translator.delay
         repeat: false
         onTriggered: () => {
-            if (translateProc.running) translateProc.queued = true;
-            else root.startTranslation();
+            if (root.inputField.text.trim().length > 0) {
+                translateProc.running = false;
+                translateProc.buffer = "";
+                translateProc.running = true;
+            } else {
+                root.translatedText = "";
+            }
         }
-    }
-
-    function startTranslation() {
-        const text = root.inputField.text.trim();
-        if (text.length === 0) {
-            root.translatedText = "";
-            root.failed = false;
-            return;
-        }
-        translateProc.buffer = "";
-        translateProc.command = ["timeout", "12", "trans", "-e", root.engine, "-4", "-brief", "-no-bidi",
-            "-source", root.sourceLanguage, "-target", root.targetLanguage, text];
-        translateProc.running = true;
     }
 
     Process {
         id: translateProc
-        property bool queued: false
+        command: ["bash", "-c", `trans -e bing -brief -no-bidi`
+            + ` -source '${StringUtils.shellSingleQuoteEscape(root.sourceLanguage)}'`
+            + ` -target '${StringUtils.shellSingleQuoteEscape(root.targetLanguage)}'`
+            + ` '${StringUtils.shellSingleQuoteEscape(root.inputField.text.trim())}'`]
         property string buffer: ""
         stdout: SplitParser {
             onRead: data => {
@@ -92,29 +82,7 @@ Item {
             }
         }
         onExited: (exitCode, exitStatus) => {
-            if (translateProc.queued) {
-                translateProc.queued = false;
-                root.startTranslation();
-                return;
-            }
-            finishTimer.restart();
-        }
-    }
-
-    Timer {
-        id: finishTimer
-        interval: 60
-        onTriggered: {
-            if (translateProc.running) return;
-            const lines = translateProc.buffer.split("\n").filter(line => !line.includes("[WARNING]"));
-            const output = lines.join("\n").trim();
-            if (output.length > 0) {
-                root.translatedText = output;
-                root.failed = false;
-            } else {
-                root.translatedText = "";
-                root.failed = true;
-            }
+            root.translatedText = translateProc.buffer.trim();
         }
     }
 
@@ -202,7 +170,6 @@ Item {
 
             GroupButton {
                 id: swapButton
-                glass: true
                 Layout.preferredWidth: height
                 colBackground: Appearance.colors.colTertiaryContainer
                 colBackgroundHover: Appearance.colors.colTertiaryContainerHover
@@ -232,9 +199,7 @@ Item {
             Layout.fillWidth: true
             isInput: false
             containerColor: ColorUtils.transparentize(Appearance.colors.colPrimaryContainer, 0.8)
-            placeholderText: root.failed ? Translation.tr("Translation failed. Check your connection and try again.")
-                : translateProc.running ? Translation.tr("Translating...")
-                : Translation.tr("Translation goes here...")
+            placeholderText: Translation.tr("Translation goes here...")
             property bool hasTranslation: (root.translatedText.trim().length > 0)
             text: hasTranslation ? root.translatedText : ""
             GroupButton {

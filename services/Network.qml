@@ -295,16 +295,6 @@ Singleton {
                     : "";
             }
         }
-        onExited: (exitCode, exitStatus) => {
-            if (exitCode !== 0 || root.publicIpAddress === "")
-                publicIpRetryTimer.restart();
-        }
-    }
-
-    Timer {
-        id: publicIpRetryTimer
-        interval: 30000
-        onTriggered: updatePublicIp.running = true
     }
 
     Process {

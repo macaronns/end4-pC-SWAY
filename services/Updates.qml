@@ -42,19 +42,13 @@ Singleton {
         command: ["which", "checkupdates"]
         onExited: (exitCode, exitStatus) => {
             root.available = (exitCode === 0);
-            firstCheckTimer.start();
+            root.refresh();
         }
-    }
-
-    Timer {
-        id: firstCheckTimer
-        interval: 60 * 1000
-        onTriggered: root.refresh()
     }
 
     Process {
         id: checkUpdatesProc
-        command: ["bash", "-c", "pacman=$(checkupdates 2>/dev/null | wc -l); if command -v yay >/dev/null 2>&1; then aur=$(yay -Qua 2>/dev/null | wc -l); elif command -v paru >/dev/null 2>&1; then aur=$(paru -Qua 2>/dev/null | wc -l); else aur=0; fi; echo $((pacman + aur))"]
+        command: ["bash", "-c", "pacman=$(checkupdates 2>/dev/null | wc -l); aur=$(yay -Qua 2>/dev/null | wc -l || paru -Qua 2>/dev/null | wc -l || echo 0); echo $((pacman + aur))"]
         stdout: StdioCollector {
             onStreamFinished: {
                 root.count = parseInt(text.trim())
